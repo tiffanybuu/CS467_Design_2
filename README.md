@@ -11,3 +11,5 @@ helpful information.
 5. If you see three circles, it's working.
 6. Modify the css, html, and/or js files as you see fit. The web browser should automatically reload the page as you
 make changes.
+
+You also need to install d3-simple-slider library: `npm install d3-simple-slider`. More information on this library found here: https://www.npmjs.com/package/d3-simple-slider

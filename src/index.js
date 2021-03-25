@@ -5,11 +5,13 @@
  */
 import * as d3 from "d3";
 import * as topojson from "topojson";
+import { sliderBottom } from 'd3-simple-slider';
+
 
 //https://github.com/topojson/us-atlas#states-albers-10m.json
-const padding = {top: 100, left: 100, right: 10, bottom: 100}
+const padding = {top: 10, left: 100, right: 10, bottom: 80}
 const svgWidth = 975;
-const svgHeight = 610;
+const svgHeight = 630;
 const height = svgHeight - padding.top - padding.bottom;
 const width = svgWidth - padding.right - padding.left;
 
@@ -32,7 +34,6 @@ function drawCircles() {
         d.rank_percentage = i/50.00;
         // rank out of 50 states plus DC = 51
         d.rank = i+1;
-        console.log(d.rank)
       })
 
       const index_range = d3.extent(data.map(d => d.State_Level_Index))
@@ -60,6 +61,7 @@ function drawCircles() {
 
         // https://observablehq.com/@d3/state-choropleth
         svg.append("g")
+        .attr('transform', "translate(0,30)")
         .selectAll("path")
         .data(topojson.feature(us, us.objects.states).features)
         .join("path")
@@ -68,19 +70,19 @@ function drawCircles() {
 
 
         svg.append("path")
-            .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
-            .attr("fill", "none")
-            .attr("stroke", "white")
-            .attr("stroke-linejoin", "round")
-            .attr("d", path);
+          .attr('transform', "translate(0,30)")
+          .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
+          .attr("fill", "none")
+          .attr("stroke", "white")
+          .attr("stroke-linejoin", "round")
+          .attr("d", path);
 
         });
 
         // legend code found here: http://bl.ocks.org/dougdowson/9832019
         const legend = svg.append("g")
 		        .attr("id", "legend")
-            .attr('fill', 'blue')
-            .attr('transform', "translate(60,30)");
+            .attr('transform', "translate(-200,10)");
 
         const legenditem = legend.selectAll(".legenditem")
         .data(d3.range(5))
@@ -112,5 +114,21 @@ function drawCircles() {
         .attr('fill', 'black');
 
     });
+    //install the d3-simple-slider library within node_modules: https://www.npmjs.com/package/d3-simple-slider
+    const parseTime = d3.timeParse('%Y-%m-%d');
+    console.log(parseTime("2020-01-21"))
+
+    const slider = sliderBottom().tickFormat(d3.timeFormat('%m/%d/%y'))
+      .min(parseTime('2020-01-21')).max(parseTime('2021-03-22')).width(900)
+    
+    
+    const time_slider = d3.select(".time-slider")
+      .append('svg')
+      .attr('width', 1000)
+      .attr('height', 70)
+      .append('g')
+      .attr('transform', 'translate(30,30)');
+
+    time_slider.call(slider);
 
 }
