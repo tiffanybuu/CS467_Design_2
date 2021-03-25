@@ -4,75 +4,70 @@
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
  */
 import * as d3 from "d3";
-import * as geo from "d3-geo";
+import * as topojson from "topojson";
 
-
-const padding = {top: 60, left: 80, right: 10, bottom: 40}
-const svgWidth = 900;
-const svgHeight = 600;
+//https://github.com/topojson/us-atlas#states-albers-10m.json
+const padding = {top: 100, left: 100, right: 10, bottom: 100}
+const svgWidth = 975;
+const svgHeight = 610;
 const height = svgHeight - padding.top - padding.bottom;
 const width = svgWidth - padding.right - padding.left;
-/*
- * Why this line? Because if this script runs before the svg exists, then nothing will happen, and d3 won't even
- * complain.  This delays drawing until the entire DOM has loaded.
- */
+
 window.addEventListener("load", drawCircles);
+const svg = d3.select("svg")
+.attr('width', svgWidth)
+.attr('height', svgHeight);
 
 
-// const projection = d3.geoAlbersUsa()
-//   .translate([width / 2, height / 2]) // translate to center of screen
-//   .scale([1000]); // scale things down so see entire US
-// // Define path generator
-// const path = geo.geoPath() // path generator that will convert GeoJSON to SVG paths
-//   .projection(projection); // tell path generator to use albersUsa projection
-
-// const svg = d3.select("svg")
-// .attr('width', svgWidth)
-// .attr('height', svgHeight);
-
-// var map = d3.choropleth()
-//     .geofile('/d3-geomap/topojson/countries/USA.json')
-//     .projection(d3.geoAlbersUsa)
-//     .column('2012')
-//     .unitId('fips')
-//     .scale(1000)
-//     .legend(true);
-// var map = geo.geomap()
-//     .geofile('/d3-geomap/topojson/world/countries.json')
-//     .draw(d3.select('#map'));
+  // Define path generator
+const path = d3.geoPath() // path generator that will convert GeoJSON to SVG paths
 
 function drawCircles() {
-    const indexArray = [];
 
-    d3.csv("social-capital-states.csv", function(data) {
-        // var dataArray = [];
-        // console.log(data)
-        // for (var d = 0; d < data.length; d++) {
-        //     console.log(data[d])
-        //     dataArray.push((data[d].State_Level_Index))
-        // }
-        // console.log(dataArray)
-        // map.draw(svg.datum(data));
-        // indexArray.push(data.State_Level_Index)
-        // console.log(data)
-        // svg.append("g")
-        // .selectAll("path")
-        // .data(topojson.feature(us, us.objects.states).features)
-        // .join("path")
-        // //   .attr("fill", d => color(data.get(d.properties.name)))
-        //   .attr("d", path)
-        // .append("title")
-        //   .text(d => `${d.properties.name}
+    d3.csv("social-capital-states.csv").then(function(data) {
 
+      data.forEach(function (d) {
+        d.State_Level_Index = parseFloat(d.State_Level_Index)
+      })
+
+      const index_range = d3.extent(data.map(d => d.State_Level_Index))
+      const color = d3.scaleQuantize().domain(index_range).range(["#000099", "#0066ff", "#36ADAB", "#91E38E", "#E4E5A6"])
+
+      d3.json("states-albers-10m.json").then(function(us) {
+        const feat = topojson.feature(us, us.objects.states).features;
+        // https://bl.ocks.org/wboykinm/dbbe50d1023f90d4e241712395c27fb3
+        for (var i = 0; i < data.length; i++) {
+
+          var dataState = data[i].State;
+          var dataValue = parseFloat(data[i].State_Level_Index);
+          
+          for (var j = 0; j < feat.length; j++)  {
+            var jsonState = feat[j].properties.name;
+
+            if (dataState == jsonState) {
+            feat[j].properties.social_index = dataValue; 
+            break;
+            }
+          }
+        }
+
+        // https://observablehq.com/@d3/state-choropleth
+        svg.append("g")
+        .selectAll("path")
+        .data(topojson.feature(us, us.objects.states).features)
+        .join("path")
+        .attr("fill",d => color(d.properties.social_index))
+        .attr("d", path)
+
+
+        svg.append("path")
+            .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
+            .attr("fill", "none")
+            .attr("stroke", "white")
+            .attr("stroke-linejoin", "round")
+            .attr("d", path);
+
+        });
     });
 
-
-
-    // svg.selectAll("circle")
-    //     .data(data)
-    //     .join("circle")
-    //         .attr("cx", d => d.x)
-    //         .attr("cy", d => d.y)
-    //         .attr("r", d => d.r)
-    //         .attr("fill", d => d.color);
 }

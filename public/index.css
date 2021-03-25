@@ -1,1 +1,7 @@
 /* Insert your global CSS here. */
+svg {
+    margin-left: auto; 
+    margin-right: auto; 
+    display: block; 
+    margin-top: 30px; 
+}
