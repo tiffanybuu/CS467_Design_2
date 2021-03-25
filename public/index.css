@@ -1,7 +1,13 @@
 /* Insert your global CSS here. */
-svg {
+.map {
     margin-left: auto; 
     margin-right: auto; 
     display: block; 
     margin-top: 30px; 
+}
+#legend text {
+    font-family: 'Roboto Slab';
+    font-weight: 300; 
+    font-size: 11px; 
+
 }
