@@ -7,14 +7,16 @@ from datetime import datetime, date
 from dateutil.parser import parse
 from collections import defaultdict, OrderedDict
 import pandas as pd
+from sklearn import preprocessing
+
 
 
 # parse through covid cases to make front-end retrieving easier 
 df = pd.read_csv("us-states.csv")
-# print(df)
+
+
 
 covid_rates_by_date = {}
-covid_rates_by_date_2 = []
 for index, row in df.iterrows():
     date = row['date']
     state = row['state']
