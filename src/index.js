@@ -114,21 +114,43 @@ function drawCircles() {
         .attr('fill', 'black');
 
     });
-    //install the d3-simple-slider library within node_modules: https://www.npmjs.com/package/d3-simple-slider
     const parseTime = d3.timeParse('%Y-%m-%d');
-    console.log(parseTime("2020-01-21"))
 
+    d3.json("covid_cases_states.json").then(function(data) {
+  
+      data.forEach(function(d,i) {
+        d.date = parseTime(d.date);
+        d.states = d.states;
+      });
+
+    // time slider 
+    // https://www.npmjs.com/package/d3-simple-slider
+    // turning string into datetime 
     const slider = sliderBottom().tickFormat(d3.timeFormat('%m/%d/%y'))
-      .min(parseTime('2020-01-21')).max(parseTime('2021-03-22')).width(900)
-    
-    
-    const time_slider = d3.select(".time-slider")
-      .append('svg')
-      .attr('width', 1000)
-      .attr('height', 70)
-      .append('g')
-      .attr('transform', 'translate(30,30)');
-
+    .min(parseTime('2020-01-21')).max(parseTime('2021-03-22')).width(900)
+    .on("onchange", (val) => {
+      update_spikes(val)
+    });
+  
+  
+  const time_slider = d3.select(".time-slider")
+    .append('svg')
+    .attr('width', 1000)
+    .attr('height', 70)
+    .append('g')
+    .attr('transform', 'translate(30,30)')
+  
     time_slider.call(slider);
 
+  // covid cases spike map 
+    function update_spikes(date) {
+
+      const covid_data = (data.find(d => 
+        d.date.getMonth() == date.getMonth() &&
+        d.date.getDay() == date.getDay() &&
+        d.date.getYear() == date.getYear()
+        ))
+    }
+    });
+    
 }
