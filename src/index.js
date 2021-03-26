@@ -6,12 +6,13 @@
 import * as d3 from "d3";
 import * as topojson from "topojson";
 import { sliderBottom } from 'd3-simple-slider';
+import { easeLinear } from "d3";
 
 
 //https://github.com/topojson/us-atlas#states-albers-10m.json
 const padding = {top: 10, left: 100, right: 10, bottom: 80}
 const svgWidth = 975;
-const svgHeight = 630;
+const svgHeight = 680;
 const height = svgHeight - padding.top - padding.bottom;
 const width = svgWidth - padding.right - padding.left;
 
@@ -19,6 +20,7 @@ window.addEventListener("load", drawCircles);
 const svg = d3.select(".map")
 .attr('width', svgWidth)
 .attr('height', svgHeight);
+
 
   // Define path generator
 const path = d3.geoPath() // path generator that will convert GeoJSON to SVG paths
@@ -51,19 +53,21 @@ function drawCircles() {
           const dataState = data[i].State;
           const dataValue = parseFloat(data[i].State_Level_Index);
           
-          for (var j = 0; j < feat.length; j++)  {
-            const jsonState = feat[j].properties.name;
+          const dat = feat.find(d => d.properties.name == dataState);
+          dat.properties.social_index = dataValue; 
+          // for (var j = 0; j < feat.length; j++)  {
+          //   const jsonState = feat[j].properties.name;
 
-            if (dataState == jsonState) {
-            feat[j].properties.social_index = dataValue; 
-            break;
-            }
-          }
+          //   if (dataState == jsonState) {
+          //   feat[j].properties.social_index = dataValue; 
+          //   break;
+          //   }
+          // }
         }
 
         // https://observablehq.com/@d3/state-choropleth
         svg.append("g")
-        .attr('transform', "translate(0,30)")
+        .attr('transform', "translate(0,70)")
         .selectAll("path")
         .data(topojson.feature(us, us.objects.states).features)
         .join("path")
@@ -72,7 +76,7 @@ function drawCircles() {
 
 
         svg.append("path")
-          .attr('transform', "translate(0,30)")
+          .attr('transform', "translate(0,70)")
           .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
           .attr("fill", "none")
           .attr("stroke", "white")
@@ -85,14 +89,21 @@ function drawCircles() {
             data.forEach(function(d,i) {
               d.date = parseTime(d.date);
               d.states = d.states;
+
+              for (var i = 0; i < d.states.length; i++) {
+                const dataState = d.states[i].state;
+                const dat = feat.find(d => d.properties.name == dataState);
+                d.states[i].centroid = path.centroid(dat)
+
+              }
             });
-      
           // time slider 
           // https://www.npmjs.com/package/d3-simple-slider
           // turning string into datetime 
           const slider = sliderBottom().tickFormat(d3.timeFormat('%m/%d/%y'))
           .min(parseTime('2020-01-21')).max(parseTime('2021-03-22')).width(900)
           .on("onchange", (val) => {
+            svg.selectAll('.spike_map').remove();
             update_spikes(val)
           });
         
@@ -119,49 +130,62 @@ function drawCircles() {
             // to covid data 
 
             const states = covid_data.states;
-            for (var i = 0; i < states.length; i++) {
-              const dataState = states[i].state;
-              
-              for (var j = 0; j < feat.length; j++)  {
-                const jsonState = feat[j].properties.name;
-    
-                if (dataState == jsonState) {
-                  states[i].centroid = path.centroid(feat[j]); 
-                  break;
-                }
-              }
-            }
+
             const length = d3.scaleLinear().domain([0, d3.max(covid_data.states, d => d.cases)])
               .range([0,150]);
 
-            function spike(length, width=5) {
+            function spike(length, width=7) {
               return `M${-width / 2},0L0,${-length}L${width / 2},0`
             }
-        
-            svg.append('g')
-            .attr('transform', "translate(0,30)")
+            // const t =d3.select(svg).transition().duration(1000)
 
-              .attr('fill', 'red')
-              .attr('fill-opacity', 0.3)
-              .attr('stroke', 'red')
-              .selectAll('path')
-              .data(covid_data.states)
-              .join('path')
-              .attr('d', d => spike(length(d.cases)))
-              .attr('transform', (d) => {
-                if (d.centroid) {
-                  return `translate(${d.centroid})`
-                } 
-              })     
-            }
-          });
+            const spikes_g = svg.append('g')
+            .attr('transform', "translate(0,70)")
+            .attr('class', 'spike_map')
 
+            spikes_g.selectAll('path')
+            .attr('transform', "translate(0,70)")
+            .data(covid_data.states)
+            .join(
+              enter => {
+                const ll = enter.append('path')
+                .attr('transform', "translate(0,70)")
+
+                .attr('fill', 'red')
+                .attr('fill-opacity', 0.6)
+                .attr('stroke', 'red')
+                .attr('d', (d) => {
+                  if (d.centroid) {
+                    return spike(length(d.cases))
+                  }
+                })
+                .attr('transform', (d) => {
+                  if (!isNaN(d.centroid[0]) && !isNaN(d.centroid[1])) {
+                    return `translate(${d.centroid})`
+                  } 
+                  return `translate(0,-80)`
+                }) 
+              },
+              update => update, 
+              exit => {
+                exit.transition().duration(1000).ease(easeLinear)
+                .attr('d', (d) => {
+                  if (d.centroid) {
+                    return spike(length(d.cases))
+                  }
+                })
+                .remove()
+              }
+            )
+          }
         });
+
+      });
 
         // legend code found here: http://bl.ocks.org/dougdowson/9832019
         const legend = svg.append("g")
 		        .attr("id", "legend")
-            .attr('transform', "translate(-200,10)");
+            .attr('transform', "translate(-200,80)");
 
         const legenditem = legend.selectAll(".legenditem")
         .data(d3.range(5))
