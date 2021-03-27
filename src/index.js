@@ -130,8 +130,8 @@ function drawCircles() {
             // to covid data 
 
             const states = covid_data.states;
-
-            const length = d3.scaleLinear().domain([0, d3.max(covid_data.states, d => d.cases)])
+            // [0, d3.max(covid_data.states, d => d.covid_rate)]
+            const length = d3.scaleLinear().domain(d3.extent(covid_data.states, d => d.covid_rate))
               .range([0,150]);
 
             function spike(length, width=7) {
@@ -156,7 +156,7 @@ function drawCircles() {
                 .attr('stroke', 'red')
                 .attr('d', (d) => {
                   if (d.centroid) {
-                    return spike(length(d.cases))
+                    return spike(length(d.covid_rate))
                   }
                 })
                 .attr('transform', (d) => {
@@ -171,7 +171,7 @@ function drawCircles() {
                 exit.transition().duration(1000).ease(easeLinear)
                 .attr('d', (d) => {
                   if (d.centroid) {
-                    return spike(length(d.cases))
+                    return spike(length(d.covid_rate))
                   }
                 })
                 .remove()
