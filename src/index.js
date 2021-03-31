@@ -175,7 +175,50 @@ function drawCircles() {
             function spike(length, width=7) {
               return `M${-width / 2},0L0,${-length}L${width / 2},0`
             }
-            // const t =d3.select(svg).transition().duration(1000)
+
+            //legend detailing what the sizes of the spikes mean
+            //remove old legend
+            svg.select("g.spike_legend").remove();
+
+            //calculate min and max covid rate
+            const extent = d3.extent(covid_data.states, d => d.covid_rate);
+            const min_rate = extent[0];
+            const max_rate = extent[1];
+
+            const spike_legend = svg.append("g")
+                .attr("transform", "translate(850,200)")
+                .attr("class", "spike_legend");
+
+
+            for (var i = 1; i <= 3; i++) {
+              spike_legend.append('path')
+              .attr('transform', "translate(" + (i - 1) * 50 + ",300)")
+              .attr('fill', 'red')
+              .attr('fill-opacity', 0.6)
+              .attr('stroke', 'red')
+              .attr('d', spike(50 * i));
+
+              var covid_rate_num = parseFloat((min_rate + (max_rate - min_rate) * (i / 3.0)).toPrecision(2))
+
+              if (covid_rate_num < 0.0001) {
+                covid_rate_num = covid_rate_num.toExponential();
+              }
+
+              spike_legend.append("text")
+              .attr("x", (i - 1) * 50 + 13)
+              .attr("y", 315)
+              .style("text-anchor", "end")
+              .text(covid_rate_num)
+              .attr('fill', 'black');
+            }
+
+            spike_legend.append("text")
+            .attr("x", 125)
+            .attr("y", 335)
+            .style("text-anchor", "end")
+            .text("Cumulative cases / population")
+            .attr('fill', 'black');
+
 
             const spikes_g = svg.append('g')
             .attr('transform', "translate(0,70)")
@@ -194,7 +237,7 @@ function drawCircles() {
                 .attr('stroke', 'red')
                 .attr('d', (d) => {
                   if (d.centroid) {
-                    return spike(length(d.covid_rate))
+                    return spike(length(d.covid_rate));
                   }
                 })
                 .attr('transform', (d) => {
@@ -252,9 +295,6 @@ function drawCircles() {
         .attr("y", 0)
         .style("text-anchor", "end")
         .text("Highest SCI (2.08)")
-        .attr('fill', 'black');
-
+        .attr('fill', 'black')
   });
-
-
 }

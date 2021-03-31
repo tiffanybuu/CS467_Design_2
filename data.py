@@ -11,7 +11,7 @@ from sklearn import preprocessing
 
 
 
-# parse through covid cases to make front-end retrieving easier 
+# parse through covid cases to make front-end retrieving easier
 df = pd.read_csv("us-states.csv")
 df_pop = pd.read_csv("population.csv")
 
@@ -20,14 +20,16 @@ for index, row in df.iterrows():
     date = row['date']
     state = row['state']
     cases = row['cases']
-    
-    pop_row = (df_pop.loc[df_pop['State'] == state])
+
+    pop_row = df_pop.loc[df_pop['State'] == state]
     pop_state = 0.0
     covid_rate = 0.0
 
-    if not (pop_row.empty):
+    if not (pop_row.empty) and state != "Puerto Rico":
         pop_state = float(pop_row['Pop'])
         covid_rate = (cases / pop_state)
+    else:
+        continue
 
     if date not in covid_rates_by_date:
         covid_rates_by_date[date] = {}
