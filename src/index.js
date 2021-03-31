@@ -64,39 +64,72 @@ function drawCircles() {
           //   }
           // }
         }
+        d3.json("covid_cases_states.json").then(function(cov_data) {
 
+          cov_data.forEach(function(d,i) {
+            d.date = parseTime(d.date);
+            d.states = d.states;
+
+            for (var i = 0; i < d.states.length; i++) {
+              const dataState = d.states[i].state;
+              const dat = feat.find(d => d.properties.name == dataState);
+              d.states[i].centroid = path.centroid(dat)
+
+            }
+          });
         // https://observablehq.com/@d3/state-choropleth
-        svg.append("g")
-        .attr('transform', "translate(0,70)")
-        .selectAll("path")
-        .data(topojson.feature(us, us.objects.states).features)
-        .join("path")
-        .attr("fill",d => color(d.properties.social_index))
-        .attr("d", path)
+      //   svg.append("g")
+      //   .attr('transform', "translate(0,70)")
+      //   .selectAll("path")
+      //   .data(topojson.feature(us, us.objects.states).features)
+      //   .join("path")
+      //   .attr("fill",d => color(d.properties.social_index))
+      //   .attr("d", path)
+      //   // .on("mouseover", (mouseEvent, d)=>{
+      //   //   d3.select('.tooltip').attr("fill","black")})
+      //   .on("mouseover", (mouseEvent, d) => {
+      //     // Runs when the mouse enters a rect.  d is the corresponding data point.
+      //     // Show the tooltip and adjust its text to say the temperature.
+      //     d3.select(".tooltip").text(d).attr("style","opacity:20");
+      // })
+      //   .on("mousemove", (mouseEvent, d) => {/* Runs when mouse moves inside a rect */
+      //   d3.select(".tooltip")
+      //     .style("left", d3.pointer(mouseEvent)[0]-60 + 'px')
+      //     .style("top", d3.pointer(mouseEvent)[1] -60+'px').attr("data-html", "true")
+      //     .html("<b>"+d.properties.name+"</b> <br/>"
+      //     +"SCI :"+d.properties.social_index
+      //     +"<br/> SCI Rank: "+data.find(da => da.State == d.properties.name).rank
+      //     +"<br/> Covid Rate: ")})
+      //     .on("mouseout", (mouseEvent, d) => {/* Runs when mouse exits a rect */
+      //       d3.select(".tooltip").attr("style","opacity:0")});
+        
+        
+        
 
 
-        svg.append("path")
-          .attr('transform', "translate(0,70)")
-          .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
-          .attr("fill", "none")
-          .attr("stroke", "white")
-          .attr("stroke-linejoin", "round")
-          .attr("d", path);
+      //   svg.append("path")
+      //     .attr('transform', "translate(0,70)")
+      //     .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
+      //     .attr("fill", "none")
+      //     .attr("stroke", "white")
+      //     .attr("stroke-linejoin", "round")
+      //     .attr("d", path)
+          
 
 
-          d3.json("covid_cases_states.json").then(function(data) {
+          // d3.json("covid_cases_states.json").then(function(cov_data) {
 
-            data.forEach(function(d,i) {
-              d.date = parseTime(d.date);
-              d.states = d.states;
+          //   cov_data.forEach(function(d,i) {
+          //     d.date = parseTime(d.date);
+          //     d.states = d.states;
 
-              for (var i = 0; i < d.states.length; i++) {
-                const dataState = d.states[i].state;
-                const dat = feat.find(d => d.properties.name == dataState);
-                d.states[i].centroid = path.centroid(dat)
+          //     for (var i = 0; i < d.states.length; i++) {
+          //       const dataState = d.states[i].state;
+          //       const dat = feat.find(d => d.properties.name == dataState);
+          //       d.states[i].centroid = path.centroid(dat)
 
-              }
-            });
+          //     }
+          //   });
           // time slider
           // https://www.npmjs.com/package/d3-simple-slider
           // turning string into datetime
@@ -106,7 +139,6 @@ function drawCircles() {
             svg.selectAll('.spike_map').remove();
             update_spikes(val)
           });
-
 
         const time_slider = d3.select(".time-slider")
           .append('svg')
@@ -158,7 +190,7 @@ function drawCircles() {
         // covid cases spike map
           function update_spikes(date) {
 
-            const covid_data = (data.find(d =>
+            const covid_data = (cov_data.find(d =>
               d.date.getMonth() == date.getMonth() &&
               d.date.getDay() == date.getDay() &&
               d.date.getYear() == date.getYear()
@@ -260,7 +292,43 @@ function drawCircles() {
             )
           }
         });
+        
+        svg.append("g")
+        .attr('transform', "translate(0,70)")
+        .selectAll("path")
+        .data(topojson.feature(us, us.objects.states).features)
+        .join("path")
+        .attr("fill",d => color(d.properties.social_index))
+        .attr("d", path)
+        // .on("mouseover", (mouseEvent, d)=>{
+        //   d3.select('.tooltip').attr("fill","black")})
+        .on("mouseover", (mouseEvent, d) => {
+          // Runs when the mouse enters a rect.  d is the corresponding data point.
+          // Show the tooltip and adjust its text to say the temperature.
+          d3.select(".tooltip").text(d).attr("style","opacity:20");
+      })
+        .on("mousemove", (mouseEvent, d) => {/* Runs when mouse moves inside a rect */
+        d3.select(".tooltip")
+          .style("left", d3.pointer(mouseEvent)[0]-60 + 'px')
+          .style("top", d3.pointer(mouseEvent)[1] -60+'px').attr("data-html", "true")
+          .html("<b>"+d.properties.name+"</b> <br/>"
+          +"SCI :"+d.properties.social_index
+          +"<br/> SCI Rank: "+data.find(da => da.State == d.properties.name).rank
+          +"<br/> Covid Rate: ")})
+          .on("mouseout", (mouseEvent, d) => {/* Runs when mouse exits a rect */
+            d3.select(".tooltip").attr("style","opacity:0")});
+        
+        
+        
 
+
+        svg.append("path")
+          .attr('transform', "translate(0,70)")
+          .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
+          .attr("fill", "none")
+          .attr("stroke", "white")
+          .attr("stroke-linejoin", "round")
+          .attr("d", path)
       });
 
         // legend code found here: http://bl.ocks.org/dougdowson/9832019
