@@ -42,7 +42,7 @@ function drawCircles() {
       // const color = d3.scaleOrdinal().domain(index_range).range(["#E4E5A6", "#91E38E", "#36ADAB", "#0066ff", "#000099"])
       const color = d3.scaleQuantize().domain(index_range).range(["#000099", "#0066ff", "#36ADAB", "#91E38E", "#E4E5A6"])
 
-      const legend_color = ["#000099", "#0066ff", "#36ADAB", "#91E38E", "#E4E5A6"]; 
+      const legend_color = ["#000099", "#0066ff", "#36ADAB", "#91E38E", "#E4E5A6"];
       d3.json("states-albers-10m.json").then(function(us) {
         var feat = topojson.feature(us, us.objects.states).features;
 
@@ -52,14 +52,14 @@ function drawCircles() {
 
           const dataState = data[i].State;
           const dataValue = parseFloat(data[i].State_Level_Index);
-          
+
           const dat = feat.find(d => d.properties.name == dataState);
-          dat.properties.social_index = dataValue; 
+          dat.properties.social_index = dataValue;
           // for (var j = 0; j < feat.length; j++)  {
           //   const jsonState = feat[j].properties.name;
 
           //   if (dataState == jsonState) {
-          //   feat[j].properties.social_index = dataValue; 
+          //   feat[j].properties.social_index = dataValue;
           //   break;
           //   }
           // }
@@ -85,7 +85,7 @@ function drawCircles() {
 
 
           d3.json("covid_cases_states.json").then(function(data) {
-  
+
             data.forEach(function(d,i) {
               d.date = parseTime(d.date);
               d.states = d.states;
@@ -97,37 +97,75 @@ function drawCircles() {
 
               }
             });
-          // time slider 
+          // time slider
           // https://www.npmjs.com/package/d3-simple-slider
-          // turning string into datetime 
+          // turning string into datetime
           const slider = sliderBottom().tickFormat(d3.timeFormat('%m/%d/%y'))
           .min(parseTime('2020-01-21')).max(parseTime('2021-03-22')).width(900)
           .on("onchange", (val) => {
             svg.selectAll('.spike_map').remove();
             update_spikes(val)
           });
-        
-        
+
+
         const time_slider = d3.select(".time-slider")
           .append('svg')
           .attr('width', 1000)
           .attr('height', 70)
           .append('g')
           .attr('transform', 'translate(30,30)')
-        
+
           time_slider.call(slider);
-      
-        // covid cases spike map 
+
+        //playButton for animating the visualization
+        const playButton = d3.select(".play-button");
+        var timerID = undefined;
+
+        //pauses the animation and changes the button text and color
+        function pauseAnimation() {
+          clearInterval(timerID);
+          playButton.text("Play");
+          playButton.style("background-color", "#77DD77");
+        }
+
+        playButton.on("click", function() {
+          if (d3.select(this).text() == "Play") {
+            //change text and styling to indicate that the user can pause if desired
+            d3.select(this).text("Pause");
+            d3.select(this).style("background-color", "#FF6961");
+
+            //begin animation
+            timerID = setInterval(animate, 50);
+          } else {
+            pauseAnimation();
+          }
+        })
+
+        function animate() {
+          if (slider.value() >= slider.max()) {
+            //pause automatically because we have reached the end of the time series
+            pauseAnimation();
+          } else {
+            //increment value of slider by 1 day to render the next day
+            var date = slider.value();
+            date.setDate(date.getDate() + 1);
+            slider.value(date);
+
+            update_spikes(slider.value());
+          }
+        }
+
+        // covid cases spike map
           function update_spikes(date) {
-      
-            const covid_data = (data.find(d => 
+
+            const covid_data = (data.find(d =>
               d.date.getMonth() == date.getMonth() &&
               d.date.getDay() == date.getDay() &&
               d.date.getYear() == date.getYear()
               ))
 
             // calculating centroids of each state for spike location and adding
-            // to covid data 
+            // to covid data
 
             const states = covid_data.states;
             // [0, d3.max(covid_data.states, d => d.covid_rate)]
@@ -162,11 +200,11 @@ function drawCircles() {
                 .attr('transform', (d) => {
                   if (!isNaN(d.centroid[0]) && !isNaN(d.centroid[1])) {
                     return `translate(${d.centroid})`
-                  } 
+                  }
                   return `translate(0,-80)`
-                }) 
+                })
               },
-              update => update, 
+              update => update,
               exit => {
                 exit.transition().duration(1000).ease(easeLinear)
                 .attr('d', (d) => {
@@ -193,7 +231,7 @@ function drawCircles() {
         .append("g")
         .attr("class", "legenditem")
         .attr("transform", function(d, i) { return "translate(" + i * 31 + ",0)"; });
-      
+
         legenditem.append("rect")
         .attr("x", width - 240)
         .attr("y", -7)
@@ -217,6 +255,6 @@ function drawCircles() {
         .attr('fill', 'black');
 
   });
-    
-    
+
+
 }
