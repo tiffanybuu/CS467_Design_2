@@ -182,8 +182,6 @@ function drawCircles() {
             var date = slider.value();
             date.setDate(date.getDate() + 1);
             slider.value(date);
-
-            update_spikes(slider.value());
           }
         }
 
