@@ -267,7 +267,7 @@ function drawCircles() {
             .attr("x", 125)
             .attr("y", 335)
             .style("text-anchor", "end")
-            .text("Cumulative cases / population")
+            .text("Cumulative Cases / Population")
             .attr('fill', 'black');
 
 
