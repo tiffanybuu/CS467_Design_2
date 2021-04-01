@@ -347,7 +347,7 @@ function drawCircles() {
           .style("top", d3.pointer(mouseEvent)[1] -60+'px').attr("data-html", "true")
           .html("<b>"+d.properties.name+"</b> <br/>"
           +"SCI:"+d.properties.social_index
-          +"<br/> ranks <b>"+data.find(da => da.State == d.properties.name).rank + "</b> out of 50 states and DC"
+          +"<br/> ranks <b>"+(51 - parseFloat(data.find(da => da.State == d.properties.name).rank)) + "</b> out of 50 states and DC"
           +"<br/> Covid Rate: "+rate+"%"
           +"<br/> Covid Cases: "+cases)})
           .on("mouseout", (mouseEvent, d) => {/* Runs when mouse exits a rect */
