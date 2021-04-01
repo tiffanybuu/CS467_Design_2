@@ -310,9 +310,7 @@ function drawCircles() {
               }
             )
           }
-        });
-
-        svg.append("g")
+          svg.append("g")
         .attr('transform', "translate(0,70)")
         .selectAll("path")
         .data(topojson.feature(us, us.objects.states).features)
@@ -322,23 +320,38 @@ function drawCircles() {
         // .on("mouseover", (mouseEvent, d)=>{
         //   d3.select('.tooltip').attr("fill","black")})
         .on("mouseover", (mouseEvent, d) => {
+          // console.log(slider.value())
           // Runs when the mouse enters a rect.  d is the corresponding data point.
           // Show the tooltip and adjust its text to say the temperature.
           d3.select(".tooltip").text(d).attr("style","opacity:20");
       })
-        .on("mousemove", (mouseEvent, d) => {/* Runs when mouse moves inside a rect */
-        d3.select(".tooltip")
+        .on("mousemove", (mouseEvent, d) => {
+          var sname = d.properties.name
+          var date = slider.value()
+          var covid_date = cov_data.find(d =>
+            d.date.getMonth() == date.getMonth() &&
+            d.date.getDay() == date.getDay() &&
+            d.date.getYear() == date.getYear()
+            )
+          var state = covid_date.states.find(d=>d.state == sname)
+          // console.log(cov_data)
+          var rate = 0
+          var cases = 0
+          if(state){
+            rate = parseFloat(state.covid_rate).toFixed(3)*100
+            cases = state.cases
+          }
+          
+          d3.select(".tooltip")
           .style("left", d3.pointer(mouseEvent)[0]-60 + 'px')
           .style("top", d3.pointer(mouseEvent)[1] -60+'px').attr("data-html", "true")
           .html("<b>"+d.properties.name+"</b> <br/>"
-          +"SCI :"+d.properties.social_index
-          +"<br/> SCI Rank: "+data.find(da => da.State == d.properties.name).rank
-          +"<br/> Covid Rate: ")})
+          +"SCI:"+d.properties.social_index
+          +"<br/> ranks <b>"+data.find(da => da.State == d.properties.name).rank + "</b> out of 50 states and DC"
+          +"<br/> Covid Rate: "+rate+"%"
+          +"<br/> Covid Cases: "+cases)})
           .on("mouseout", (mouseEvent, d) => {/* Runs when mouse exits a rect */
             d3.select(".tooltip").attr("style","opacity:0")});
-
-
-
 
 
         svg.append("path")
@@ -348,6 +361,7 @@ function drawCircles() {
           .attr("stroke", "white")
           .attr("stroke-linejoin", "round")
           .attr("d", path)
+          });
       });
 
         // legend code found here: http://bl.ocks.org/dougdowson/9832019
