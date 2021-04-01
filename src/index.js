@@ -156,14 +156,14 @@ function drawCircles() {
         //pauses the animation and changes the button text and color
         function pauseAnimation() {
           clearInterval(timerID);
-          playButton.text("Play");
+          playButton.text("▶️ Play");
           playButton.style("background-color", "#77DD77");
         }
 
         playButton.on("click", function() {
-          if (d3.select(this).text() == "Play") {
+          if (d3.select(this).text() == "▶️ Play") {
             //change text and styling to indicate that the user can pause if desired
-            d3.select(this).text("Pause");
+            d3.select(this).text("⏸Pause");
             d3.select(this).style("background-color", "#FF6961");
 
             //begin animation
