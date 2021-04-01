@@ -102,9 +102,9 @@ function drawCircles() {
       //     +"<br/> Covid Rate: ")})
       //     .on("mouseout", (mouseEvent, d) => {/* Runs when mouse exits a rect */
       //       d3.select(".tooltip").attr("style","opacity:0")});
-        
-        
-        
+
+
+
 
 
       //   svg.append("path")
@@ -114,7 +114,7 @@ function drawCircles() {
       //     .attr("stroke", "white")
       //     .attr("stroke-linejoin", "round")
       //     .attr("d", path)
-          
+
 
 
           // d3.json("covid_cases_states.json").then(function(cov_data) {
@@ -221,27 +221,48 @@ function drawCircles() {
                 .attr("transform", "translate(850,200)")
                 .attr("class", "spike_legend");
 
-
-            for (var i = 1; i <= 3; i++) {
+            if (min_rate == max_rate) {
               spike_legend.append('path')
-              .attr('transform', "translate(" + (i - 1) * 50 + ",300)")
+              .attr('transform', "translate(" + 50 + ",300)")
               .attr('fill', 'red')
               .attr('fill-opacity', 0.6)
               .attr('stroke', 'red')
-              .attr('d', spike(50 * i));
+              .attr('d', spike(75));
 
-              var covid_rate_num = parseFloat((min_rate + (max_rate - min_rate) * (i / 3.0)).toPrecision(2))
+              var covid_rate_num = parseFloat(min_rate.toPrecision(2))
 
               if (covid_rate_num < 0.0001) {
                 covid_rate_num = covid_rate_num.toExponential();
               }
 
               spike_legend.append("text")
-              .attr("x", (i - 1) * 50 + 13)
+              .attr("x", 50 + 13)
               .attr("y", 315)
               .style("text-anchor", "end")
               .text(covid_rate_num)
               .attr('fill', 'black');
+            } else {
+              for (var i = 1; i <= 3; i++) {
+                spike_legend.append('path')
+                .attr('transform', "translate(" + (i - 1) * 50 + ",300)")
+                .attr('fill', 'red')
+                .attr('fill-opacity', 0.6)
+                .attr('stroke', 'red')
+                .attr('d', spike(50 * i));
+
+                var covid_rate_num = parseFloat((min_rate + (max_rate - min_rate) * (i / 3.0)).toPrecision(2))
+
+                if (covid_rate_num < 0.0001) {
+                  covid_rate_num = covid_rate_num.toExponential();
+                }
+
+                spike_legend.append("text")
+                .attr("x", (i - 1) * 50 + 13)
+                .attr("y", 315)
+                .style("text-anchor", "end")
+                .text(covid_rate_num)
+                .attr('fill', 'black');
+              }
             }
 
             spike_legend.append("text")
@@ -292,7 +313,7 @@ function drawCircles() {
             )
           }
         });
-        
+
         svg.append("g")
         .attr('transform', "translate(0,70)")
         .selectAll("path")
@@ -317,9 +338,9 @@ function drawCircles() {
           +"<br/> Covid Rate: ")})
           .on("mouseout", (mouseEvent, d) => {/* Runs when mouse exits a rect */
             d3.select(".tooltip").attr("style","opacity:0")});
-        
-        
-        
+
+
+
 
 
         svg.append("path")
