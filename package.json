@@ -14,6 +14,7 @@
     "snowpack": "^3.0.11"
   },
   "dependencies": {
+    "d3-format": "^2.0.0",
     "d3-geomap": "^3.3.0",
     "d3-simple-slider": "^1.10.4",
     "topojson": "^3.0.2"

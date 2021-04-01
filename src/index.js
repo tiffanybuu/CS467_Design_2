@@ -21,10 +21,17 @@ const svg = d3.select(".map")
 .attr('width', svgWidth)
 .attr('height', svgHeight);
 
+// number formatters
+const formatSmall = d3.format(".2e");
+const formatKilo = d3.format(".3~s");
+const formatPercent = d3.format(".2%");
+
 
   // Define path generator
 const path = d3.geoPath() // path generator that will convert GeoJSON to SVG paths
 const parseTime = d3.timeParse('%Y-%m-%d');
+
+let lastHovered = undefined;
 
 function drawCircles() {
 
@@ -227,17 +234,15 @@ function drawCircles() {
               .attr('stroke', 'red')
               .attr('d', spike(75));
 
-              var covid_rate_num = parseFloat(min_rate.toPrecision(2))
-
-              if (covid_rate_num < 0.0001) {
-                covid_rate_num = covid_rate_num.toExponential();
-              }
+              var covid_rate_num = parseFloat(min_rate)
+              // console.log(covid_rate_num);
+              let covid_rate_str = covid_rate_num < 0.0001 ? "~0%" : formatPercent(covid_rate_num);
 
               spike_legend.append("text")
               .attr("x", 50 + 13)
               .attr("y", 315)
               .style("text-anchor", "end")
-              .text(covid_rate_num)
+              .text(covid_rate_str)
               .attr('fill', 'black');
             } else {
               for (var i = 1; i <= 3; i++) {
@@ -248,17 +253,18 @@ function drawCircles() {
                 .attr('stroke', 'red')
                 .attr('d', spike(50 * i));
 
-                var covid_rate_num = parseFloat((min_rate + (max_rate - min_rate) * (i / 3.0)).toPrecision(2))
+                var covid_rate_num = parseFloat((min_rate + (max_rate - min_rate) * (i / 3.0)))
+                let covid_rate_str = covid_rate_num < 0.0001 ? "~0%" : formatPercent(covid_rate_num);
 
-                if (covid_rate_num < 0.0001) {
-                  covid_rate_num = covid_rate_num.toExponential();
-                }
+                // if (covid_rate_num < 0.0001) {
+                //   covid_rate_num = covid_rate_num.toExponential();
+                // }
 
                 spike_legend.append("text")
                 .attr("x", (i - 1) * 50 + 13)
                 .attr("y", 315)
                 .style("text-anchor", "end")
-                .text(covid_rate_num)
+                .text(covid_rate_str)
                 .attr('fill', 'black');
               }
             }
@@ -309,8 +315,28 @@ function drawCircles() {
                 .remove()
               }
             )
+            if (lastHovered != undefined) {
+            let covid_date = cov_data.find(d =>
+              d.date.getMonth() == date.getMonth() &&
+              d.date.getDay() == date.getDay() &&
+              d.date.getYear() == date.getYear()
+              );
+            let sname = lastHovered.properties.name
+            let state = covid_date.states.find(d=>d.state == sname)
+            if (state != undefined) {
+            let rate = parseFloat(state.covid_rate);
+            let rate_str = rate < .0001 ? "~0%" : formatPercent(rate);
+            let cases = state.cases;
+            d3.select(".tooltip")
+              .html("<b>"+lastHovered.properties.name+"</b> <br/>"
+              +"SCI: "+lastHovered.properties.social_index
+              +"<br/> Ranks <b>#"+(52 - parseFloat(data.find(da => da.State == lastHovered.properties.name).rank)) + "</b> out of 50 states and DC"
+              +"<br/> Covid Case Rate: "+rate_str
+              +"<br/> Covid Cases: "+formatKilo(cases))
+            }}
           }
-          svg.append("g")
+
+        svg.append("g")
         .attr('transform', "translate(0,70)")
         .selectAll("path")
         .data(topojson.feature(us, us.objects.states).features)
@@ -320,12 +346,14 @@ function drawCircles() {
         // .on("mouseover", (mouseEvent, d)=>{
         //   d3.select('.tooltip').attr("fill","black")})
         .on("mouseover", (mouseEvent, d) => {
+          lastHovered = d;
           // console.log(slider.value())
           // Runs when the mouse enters a rect.  d is the corresponding data point.
           // Show the tooltip and adjust its text to say the temperature.
           d3.select(".tooltip").text(d).attr("style","opacity:20");
       })
         .on("mousemove", (mouseEvent, d) => {
+          lastHovered = d;
           var sname = d.properties.name
           var date = slider.value()
           var covid_date = cov_data.find(d =>
@@ -338,18 +366,19 @@ function drawCircles() {
           var rate = 0
           var cases = 0
           if(state){
-            rate = parseFloat(state.covid_rate).toFixed(3)*100
+            rate = parseFloat(state.covid_rate)
             cases = state.cases
           }
+          let rate_str = rate < .0001 ? "~0%" : formatPercent(rate);
           
           d3.select(".tooltip")
-          .style("left", d3.pointer(mouseEvent)[0]-60 + 'px')
-          .style("top", d3.pointer(mouseEvent)[1] -60+'px').attr("data-html", "true")
+          .style("left", `${d3.pointer(mouseEvent)[0]}px`)
+          .style("top", `${d3.pointer(mouseEvent)[1]}px`).attr("data-html", "true")
           .html("<b>"+d.properties.name+"</b> <br/>"
           +"SCI: "+d.properties.social_index
-          +"<br/> Ranks <b>"+(52 - parseFloat(data.find(da => da.State == d.properties.name).rank)) + "</b> out of 50 states and DC"
-          +"<br/> Covid Case Rate: "+rate+"%"
-          +"<br/> Covid Cases: "+cases)})
+          +"<br/> Ranks <b>#"+(52 - parseFloat(data.find(da => da.State == d.properties.name).rank)) + "</b> out of 50 states and DC"
+          +"<br/> Covid Case Rate: "+rate_str
+          +"<br/> Covid Cases: "+formatKilo(cases))})
           .on("mouseout", (mouseEvent, d) => {/* Runs when mouse exits a rect */
             d3.select(".tooltip").attr("style","opacity:0")});
 
