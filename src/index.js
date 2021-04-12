@@ -47,9 +47,8 @@ function drawCircles() {
 
       const index_range = d3.extent(data.map(d => d.State_Level_Index))
       // const color = d3.scaleOrdinal().domain(index_range).range(["#E4E5A6", "#91E38E", "#36ADAB", "#0066ff", "#000099"])
-      const color = d3.scaleQuantize().domain(index_range).range(["#000099", "#0066ff", "#36ADAB", "#91E38E", "#E4E5A6"])
-
-      const legend_color = ["#000099", "#0066ff", "#36ADAB", "#91E38E", "#E4E5A6"];
+      const color = d3.scaleQuantize().domain(index_range).range(["#042698", "#3651ac", "#687cc1", "#9aa8d5", "#ccd3ea"])
+      const legend_color = ["#042698", "#3651ac", "#687cc1", "#9aa8d5", "#ccd3ea"];
       d3.json("states-albers-10m.json").then(function(us) {
         var feat = topojson.feature(us, us.objects.states).features;
 
